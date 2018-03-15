@@ -3,7 +3,7 @@ import subprocess
 from platform import linux_distribution, win32_ver
 import random
 
-LINUX = linux_distribution() if linux_distribution[0] else None
+LINUX = linux_distribution() if linux_distribution()[0] else None
 WINDOWS = win32_ver() if win32_ver()[0] else None
 SNMPD_ACCEPTED_HASH_TYPES = ('MD5', 'SHA')
 SNMPD_ACCEPTED_ENCRYPTION = ('DES', 'AES')
@@ -37,7 +37,7 @@ def add_cloudify_agent_to_snmpd(ctx):
         priv_pass=priv_pass,
         hash_type=hash_type,
         encryption=encryption,
-        snmpd_user_conf_pass=snmpd_user_conf_path,
+        snmpd_user_conf_path=snmpd_user_conf_path,
     )
 
     for tree in allowed_trees:
@@ -141,7 +141,7 @@ def add_snmpd_user(username, auth_pass, priv_pass, hash_type, encryption,
 
 
 def add_snmp_view(tree, snmpd_config_path):
-    view_string = 'view CloudifyMonitoringView {tree}'.format(
+    view_string = 'view CloudifyMonitoringView included {tree}'.format(
         tree=tree,
     )
     append_string_to_file(view_string, snmpd_config_path)
@@ -164,7 +164,7 @@ def remove_entries_from_file(partial_string, path):
     if LINUX:
         # Make any single quotes work with bash
         partial_string = partial_string.replace("'", "'\"'\"'")
-        subprocess.check_call(
+        subprocess.check_output(
             "sudo sed -i '/{partial}/d' {path}".format(
                 partial=partial_string,
                 path=path,
@@ -181,8 +181,8 @@ def remove_entries_from_file(partial_string, path):
 
 def append_string_to_file(string, path):
     if LINUX:
-        subprocess.check_call(
-            'sudo echo {user_string} | tee -a {path}'.format(
+        subprocess.check_output(
+            'echo {user_string} | sudo tee -a {path}'.format(
                 user_string=string,
                 path=path,
             ),
@@ -225,3 +225,21 @@ def get_snmpd_service_conf_path():
         raise NotSupportedError(
             'Only linux and windows are supported.'
         )
+
+
+if __name__ == '__main__':
+    class SubContext(object):
+        pass
+
+    class FakeContext(object):
+        instance = SubContext()
+        node = SubContext()
+
+        instance.runtime_properties = {}
+        node.properties = {}
+
+    ctx = FakeContext()
+    add_cloudify_agent_to_snmpd(ctx)
+
+    from pprint import pprint
+    pprint(ctx.instance.runtime_properties)
