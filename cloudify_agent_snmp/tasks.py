@@ -3,16 +3,16 @@ import subprocess
 from platform import linux_distribution, win32_ver
 import random
 
+from cloudify.decorators import operation
+from cloudify import exceptions
+
 LINUX = linux_distribution() if linux_distribution()[0] else None
 WINDOWS = win32_ver() if win32_ver()[0] else None
 SNMPD_ACCEPTED_HASH_TYPES = ('MD5', 'SHA')
 SNMPD_ACCEPTED_ENCRYPTION = ('DES', 'AES')
 
 
-class NotSupportedError(Exception):
-    pass
-
-
+@operation
 def add_cloudify_agent_to_snmpd(ctx):
     snmp_props = ctx.node.properties.get('cloudify_snmp', {})
     runtime_props = ctx.instance.runtime_properties
@@ -60,12 +60,14 @@ def add_cloudify_agent_to_snmpd(ctx):
     }
 
 
+@operation
 def remove_cloudify_agent_from_snmpd(ctx):
     runtime_props = ctx.instance.runtime_properties
 
     if 'cloudify_snmp' not in runtime_props:
-        # TODO: NonRecoverable
-        raise RuntimeError('Cannot remove SNMPD as it was not configured.')
+        raise exceptions.NonRecoverableError(
+            'Cannot remove SNMPD as it was not configured.'
+        )
     snmp_props = runtime_props['cloudify_snmp']
 
     stop_service(snmp_props['service'])
@@ -87,7 +89,7 @@ def stop_service(name):
     elif WINDOWS:
         raise NotImplementedError('Not implemented until later alpha')
     else:
-        raise NotSupportedError(
+        raise exceptions.NonRecoverableError(
             'Only linux and windows are supported.'
         )
     subprocess.check_call(stop_service_command)
@@ -99,7 +101,7 @@ def start_service(name):
     elif WINDOWS:
         raise NotImplementedError('Not implemented until later alpha')
     else:
-        raise NotSupportedError(
+        raise exceptions.NonRecoverableError(
             'Only linux and windows are supported.'
         )
     subprocess.check_call(start_service_command)
@@ -174,7 +176,7 @@ def remove_entries_from_file(partial_string, path):
     elif WINDOWS:
         raise NotImplementedError('Not implemented until later alpha')
     else:
-        raise NotSupportedError(
+        raise exceptions.NonRecoverableError(
             'Only linux and windows are supported.'
         )
 
@@ -191,7 +193,7 @@ def append_string_to_file(string, path):
     elif WINDOWS:
         raise NotImplementedError('Not implemented until later alpha')
     else:
-        raise NotSupportedError(
+        raise exceptions.NonRecoverableError(
             'Only linux and windows are supported.'
         )
 
@@ -211,7 +213,7 @@ def get_snmpd_user_conf_path():
     elif WINDOWS:
         raise NotImplementedError('Not implemented until later alpha')
     else:
-        raise NotSupportedError(
+        raise exceptions.NonRecoverableError(
             'Only linux and windows are supported.'
         )
 
@@ -222,24 +224,6 @@ def get_snmpd_service_conf_path():
     elif WINDOWS:
         raise NotImplementedError('Not implemented until later alpha')
     else:
-        raise NotSupportedError(
+        raise exceptions.NonRecoverableError(
             'Only linux and windows are supported.'
         )
-
-
-if __name__ == '__main__':
-    class SubContext(object):
-        pass
-
-    class FakeContext(object):
-        instance = SubContext()
-        node = SubContext()
-
-        instance.runtime_properties = {}
-        node.properties = {}
-
-    ctx = FakeContext()
-    add_cloudify_agent_to_snmpd(ctx)
-
-    from pprint import pprint
-    pprint(ctx.instance.runtime_properties)
