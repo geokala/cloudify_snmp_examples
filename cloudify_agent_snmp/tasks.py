@@ -77,7 +77,7 @@ def remove_cloudify_agent_from_snmpd(ctx):
 
     remove_entries_from_file(
         convert_username_to_hex_string(snmp_props['username']),
-        snmp_props['snmpd_user_conf_pass'],
+        snmp_props['snmpd_user_conf_path'],
     )
 
     start_service(snmp_props['service'])
