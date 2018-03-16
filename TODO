@@ -1,0 +1,4 @@
+- Handle missing service, config files (with helpful error message)
+- Confirm healthy configuration and rollback if not (keep copy of original during workflow, remove at end; can't use this for the uninstall because configuration may have been changed in the intervening time)
+- Windows support
+- Support providing means to encrypt passwords (public key?) 

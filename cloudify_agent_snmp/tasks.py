@@ -265,7 +265,7 @@ def get_random_password(length=40):
 
 def get_snmpd_user_conf_path():
     if LINUX:
-        if LINUX[0] == 'CentOS Linux':
+        if LINUX[0] in ('CentOS Linux', 'CentOS'):
             return '/var/lib/net-snmp/snmpd.conf'
         else:
             return '/var/lib/snmp/snmpd.conf'
