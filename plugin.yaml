@@ -1,7 +1,7 @@
 plugins:
     agent_snmp:
         executor: host_agent
-        source: https://github.com/geokala/cloudify_snmp_examples/archive/0.1.2.zip
+        source: https://github.com/geokala/cloudify_snmp_examples/archive/0.2.0.zip
         package_name: cloudify-agent-snmp-plugin
-        package_version: '0.1.2'
+        package_version: '0.2.0'
         install: true

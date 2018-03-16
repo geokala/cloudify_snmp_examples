@@ -29,8 +29,20 @@ def add_cloudify_agent_to_snmpd(ctx):
                                              get_snmpd_service_conf_path())
     allowed_trees = snmp_props.get('allowed_trees', ['.1.3.6.1.4.1.2021'])
 
+    ctx.logger.info(
+        'Stopping SNMP service "{service}" for configuration.'.format(
+            service=service,
+        ),
+    )
     stop_service(service)
 
+    ctx.logger.info(
+        'Adding user "{username}" to SNMP user management file '
+        '"{path}"'.format(
+            username=username,
+            path=snmpd_user_conf_path,
+        )
+    )
     add_snmpd_user(
         username=username,
         auth_pass=auth_pass,
@@ -41,10 +53,29 @@ def add_cloudify_agent_to_snmpd(ctx):
     )
 
     for tree in allowed_trees:
+        ctx.logger.info(
+            'Adding tree "{tree}" to CloudifyMonitoringView in '
+            '"{conf_path}"'.format(
+                tree=tree,
+                conf_path=snmpd_service_conf_path,
+            )
+        )
         add_snmp_view(tree, snmpd_service_conf_path)
 
+    ctx.logger.info(
+        'Configuring user "{username}" to use CLoudifyMonitoringView in '
+        '"{conf_path}"'.format(
+            username=username,
+            conf_path=snmpd_service_conf_path,
+        )
+    )
     add_user_mapping(username, snmpd_service_conf_path)
 
+    ctx.logger.info(
+        'Starting SNMP service "{service}" with new configuration.'.format(
+            service=service,
+        ),
+    )
     start_service(service)
 
     runtime_props['cloudify_snmp'] = {
@@ -70,17 +101,45 @@ def remove_cloudify_agent_from_snmpd(ctx):
         )
     snmp_props = runtime_props['cloudify_snmp']
 
+    ctx.logger.info(
+        'Stopping SNMP service "{service}" to remove configuration.'.format(
+            service=snmp_props['service'],
+        ),
+    )
     stop_service(snmp_props['service'])
 
+    ctx.logger.info(
+        'Removing all entries referencing CloudifyMonitoringView from '
+        'SNMP config in "{conf_path}"'.format(
+            conf_path=snmp_props['snmpd_service_conf_path'],
+        )
+    )
     remove_entries_from_file('CloudifyMonitoringView',
                              snmp_props['snmpd_service_conf_path'])
 
+    hex_user = convert_username_to_hex_string(snmp_props['username'])
+    ctx.logger.info(
+        'Removing user "{username}", identified as "{hex_name}" from SNMP '
+        'user management file "{user_conf_path}"'.format(
+            username=snmp_props['username'],
+            hex_name=hex_user,
+            user_conf_path=snmp_props['snmpd_user_conf_path'],
+        )
+    )
     remove_entries_from_file(
         convert_username_to_hex_string(snmp_props['username']),
         snmp_props['snmpd_user_conf_path'],
     )
 
+    ctx.logger.info(
+        'Starting SNMP service "{service}" with removed cloudify '
+        ' configuration.'.format(
+            service=snmp_props['service'],
+        ),
+    )
     start_service(snmp_props['service'])
+
+    runtime_props.pop('cloudify_snmp')
 
 
 def stop_service(name):
