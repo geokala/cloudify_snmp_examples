@@ -92,7 +92,7 @@ def stop_service(name):
         raise exceptions.NonRecoverableError(
             'Only linux and windows are supported.'
         )
-    subprocess.check_call(stop_service_command)
+    _run(stop_service_command)
 
 
 def start_service(name):
@@ -104,7 +104,7 @@ def start_service(name):
         raise exceptions.NonRecoverableError(
             'Only linux and windows are supported.'
         )
-    subprocess.check_call(start_service_command)
+    _run(start_service_command)
 
 
 def add_snmpd_user(username, auth_pass, priv_pass, hash_type, encryption,
@@ -166,7 +166,7 @@ def remove_entries_from_file(partial_string, path):
     if LINUX:
         # Make any single quotes work with bash
         partial_string = partial_string.replace("'", "'\"'\"'")
-        subprocess.check_output(
+        _run(
             "sudo sed -i '/{partial}/d' {path}".format(
                 partial=partial_string,
                 path=path,
@@ -183,7 +183,7 @@ def remove_entries_from_file(partial_string, path):
 
 def append_string_to_file(string, path):
     if LINUX:
-        subprocess.check_output(
+        _run(
             'echo {user_string} | sudo tee -a {path}'.format(
                 user_string=string,
                 path=path,
@@ -226,4 +226,22 @@ def get_snmpd_service_conf_path():
     else:
         raise exceptions.NonRecoverableError(
             'Only linux and windows are supported.'
+        )
+
+
+def _run(command, shell=False):
+    # It'd be nicer to use subprocess.check_output and ignore the output, but
+    # that won't work on Centos6
+    result = subprocess.call(
+        command,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        shell=shell,
+    )
+    if result != 0:
+        raise subprocess.CalledProcessError(
+            'Failed running {command} with shell={shell}'.format(
+                command=command,
+                shell=shell,
+            )
         )
