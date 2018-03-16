@@ -1,5 +1,5 @@
 - Handle missing service, config files (with helpful error message)
 - Confirm healthy configuration and rollback if not (keep copy of original during workflow, remove at end; can't use this for the uninstall because configuration may have been changed in the intervening time)
-- Windows support
+- Windows support, RHEL6 and RHEL7 support
 - Support providing means to encrypt passwords (public key?) 
 - Figure out (and fix) why any errors running commands give "Task failed 'cloudify_agent_snmp.tasks.add_cloudify_agent_to_snmpd' -> __init__() takes exactly 3 arguments (2 given) [retry 22/60]"
