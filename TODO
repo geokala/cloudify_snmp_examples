@@ -3,3 +3,4 @@
 - Windows support, RHEL6 and RHEL7 support
 - Support providing means to encrypt passwords (public key?) 
 - Figure out (and fix) why any errors running commands give "Task failed 'cloudify_agent_snmp.tasks.add_cloudify_agent_to_snmpd' -> __init__() takes exactly 3 arguments (2 given) [retry 22/60]"
+- Make the snmp agent use a node instance ID based username (e.g. cloudify_vm_1a56b); view name should also use this
