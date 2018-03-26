@@ -1,0 +1,46 @@
+tosca_definitions_version: cloudify_dsl_1_3
+
+imports:
+  - http://www.getcloudify.org/spec/cloudify/4.3/types.yaml
+  - tick_types.yaml
+
+inputs:
+  server_ip: {}
+  server_user: {}
+  server_key_path: {}
+
+node_templates:
+  existing_vm:
+    type: cloudify.nodes.Compute
+    properties:
+      ip: { get_input: server_ip }
+      agent_config:
+          user: { get_input: server_user }
+          key: { get_input: server_key_path }
+
+  influx_repo:
+    type: tick.nodes.InfluxRepository
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: existing_vm
+
+  influx_db:
+    type: tick.nodes.InfluxDB
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: existing_vm
+      - type: cloudify.relationships.depends_on
+        target: influx_repo
+
+  telegraf:
+    type: tick.nodes.Telegraf
+    properties:
+      influx_user: { get_attribute: [ influx_db, username ] }
+      influx_pass: { get_attribute: [ influx_db, password ] }
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: existing_vm
+      - type: cloudify.relationships.depends_on
+        target: influx_repo
+      - type: cloudify.relationships.connected_to
+        target: influx_db
