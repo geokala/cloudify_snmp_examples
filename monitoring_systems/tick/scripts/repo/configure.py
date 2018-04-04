@@ -29,9 +29,27 @@ gpgkey = https://repos.influxdata.com/influxdb.key""")
     ctx.logger.info('Repository added in {path}'.format(path=repo_dest))
 
     ctx.logger.info('Adding repository key.')
+    try:
+        keys_before = subprocess.check_output(['rpm', '-q', 'gpg-pubkey'])
+        keys_before = [line.strip() for line in keys_before.splitlines()]
+    except subprocess.CalledProcessError:
+        # This will cause an error when there are no keys
+        keys_before = []
     with open(tmp_key_path, 'w') as key_handle:
         key_handle.write(ctx.node.properties['influx_repo_public_key'])
     subprocess.check_call(['sudo', 'rpm', '--import', tmp_key_path])
+    keys_after = subprocess.check_output(['rpm', '-q', 'gpg-pubkey'])
+    keys_after = [line.strip() for line in keys_after.splitlines()]
+    # This logic will fail if another key is being added at the same time as
+    # this install is running, but if someone is messing around with yum
+    # during this install then we will run into too many race conditions to
+    # consider this to be stable.
+    # Simply put: Running this install in parallel with other rpm related
+    # activities is not supported.
+    for key in keys_after:
+        if key not in keys_before:
+            ctx.instance.runtime_properties['rpm-gpg-key'] = key.strip()
+            break
     ctx.logger.info('Repository key added.')
 
     ctx.logger.info('Cleaning up tempdir.')

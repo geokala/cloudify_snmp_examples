@@ -9,6 +9,8 @@ node_types:
           implementation: scripts/telegraf/configure.py
         start:
           implementation: scripts/telegraf/start.py
+        delete:
+          implementation: scripts/telegraf/delete.py
     properties: 
       influx_user: {}
       influx_pass: {}
@@ -21,6 +23,8 @@ node_types:
           implementation: scripts/influx/create.py
         configure:
           implementation: scripts/influx/configure.py
+        delete:
+          implementation: scripts/influx/delete.py
     properties:
       influx_user:
         default: cloudify_manager
@@ -31,6 +35,8 @@ node_types:
       cloudify.interfaces.lifecycle:
         configure:
           implementation: scripts/repo/configure.py
+        delete:
+          implementation: scripts/repo/delete.py
     properties:
       influx_repo_public_key:
         default: |
