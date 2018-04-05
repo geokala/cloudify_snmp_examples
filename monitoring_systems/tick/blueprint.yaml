@@ -35,8 +35,8 @@ node_templates:
   telegraf:
     type: tick.nodes.Telegraf
     properties:
-      influx_user: { get_attribute: [ influx_db, username ] }
-      influx_pass: { get_attribute: [ influx_db, password ] }
+      influx_user: { get_attribute: [ influx_db, unprivileged_username ] }
+      influx_pass: { get_attribute: [ influx_db, unprivileged_password ] }
     relationships:
       - type: cloudify.relationships.contained_in
         target: existing_vm

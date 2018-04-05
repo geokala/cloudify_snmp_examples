@@ -11,6 +11,45 @@ node_types:
           implementation: scripts/telegraf/start.py
         delete:
           implementation: scripts/telegraf/delete.py
+      telegraf.interfaces.snmp:
+        add_target:
+          implementation: scripts/telegraf/plugins/snmp/add_target
+          inputs:
+            name:
+              description: >
+                Name of target to add.
+                This will be used to name the configuration file.
+              default: null
+            address:
+              description: >
+                The target IP or hostname.
+                This should include the port if the default (161) is not used.
+              default: null
+            username:
+              description: >
+                SNMPv3 username.
+              default: null
+            priv_password:
+              description: >
+                SNMPv3 encryption password.
+              default: null
+            auth_password:
+              description: > 
+                SNMPv3 authentication password.
+              default: null
+            snmp_fields:
+              description: >
+                JSON dict mapping OIDs to human readable names, e.g.
+                {".1.3.6.1.4.1.2021.10.1.3.1": "Load average 1 minute",
+                 ".1.3.6.1.4.1.2021.10.1.3.3": "Load average 15 minute"}
+              default: {}
+        remove_target:
+          implementation: scripts/telegraf/plugins/snmp/remove_target
+          inputs:
+            name:
+              description: >
+                Name of target to remove.
+              default: null
     properties: 
       influx_user: {}
       influx_pass: {}

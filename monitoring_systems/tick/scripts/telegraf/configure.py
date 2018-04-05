@@ -20,7 +20,8 @@ BASE_CONF = """[agent]
   omit_hostname = true
 
 [[outputs.influxdb]]
-  urls = ["http://127.0.0.1:8086"]
+  urls = ["https://127.0.0.1:8086"]
+  ssl_ca = "/etc/influxdb/influxdb-selfsigned.crt"
   database = "cloudify"
   retention_policy = ""
   write_consistency = "any"

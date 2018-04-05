@@ -1,6 +1,8 @@
 from cloudify import ctx
+import os
 import string
 import subprocess
+import tempfile
 import random
 
 
@@ -107,8 +109,8 @@ def configure_https():
     conf_values = {
         # Don't change these names unless influxdb conf does, please.
         'enabled': 'true',
-        'certificate': '/etc/ssl/influxdb-selfsigned.key',
-        'private-key': '/etc/ssl/influxdb-selfsigned.crt',
+        'certificate': '/etc/influxdb/influxdb-selfsigned.crt',
+        'private-key': '/etc/influxdb/influxdb-selfsigned.key',
     }
 
     ctx.logger.info('Configuring HTTPS for InfluxDB.')
@@ -116,17 +118,43 @@ def configure_https():
     # blueprint is intended only as a reference example, so we mainly want the
     # SSL so that we can confirm telegraf and the webui will work with it.
     ctx.logger.info('Generating certificates.')
+    csr_config = """[req]
+distinguished_name = req_distinguished_name
+req_extensions = server_req_extensions
+[ server_req_extensions ]
+subjectAltName=IP:127.0.0.1,DNS:127.0.0.1,DNS:localhost
+[ req_distinguished_name ]
+commonName = _common_name # ignored, _default is used instead
+commonName_default = 127.0.0.1"""
+    csr_conf_temp_dir = tempfile.mkdtemp()
+    csr_conf_temp_file = os.path.join(csr_conf_temp_dir, 'csr_conf')
+    with open(csr_conf_temp_file, 'w') as csr_conf_handle:
+        csr_conf_handle.write(csr_config)
     subprocess.check_output([
         'sudo', 'openssl', 'req', '-x509', '-nodes', '-newkey', 'rsa:2048',
         '-days', '365', '-batch',
         '-keyout', conf_values['private-key'],
         '-out', conf_values['certificate'],
+        '-extensions', 'server_req_extensions',
+        '-config', csr_conf_temp_file,
     ])
-    with open('/etc/ssl/influxdb-selfsigned.crt') as cert_handle:
+    subprocess.check_call(['sudo', 'rm', '-rf', csr_conf_temp_dir])
+    # Make the private key only be accessible to influx (and root)
+    subprocess.check_call(['sudo', 'chmod', '440',
+                           conf_values['private-key']])
+    subprocess.check_call(['sudo', 'chgrp', 'influxdb',
+                           conf_values['private-key']])
+    with open(conf_values['certificate']) as cert_handle:
         ctx.instance.runtime_properties['ssl_cert'] = cert_handle.read()
     ctx.logger.info('Setting InfluxDB HTTPS configuration.')
     base_subst = "s|# https-{param} =.*|https-{param} = {value}|"
     for key, value in conf_values.items():
+        if key != 'enabled':
+            # The influx configuration requires quoted values or it will fail
+            # but not log any helpful reasons. However, if we quote the
+            # value of the https-enabled key then it'll also fail without
+            # logging the reason.
+            value = '"' + value + '"'
         subprocess.check_output([
             "sudo", "sed", "-i",
             base_subst.format(
