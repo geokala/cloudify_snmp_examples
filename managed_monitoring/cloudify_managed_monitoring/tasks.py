@@ -43,6 +43,7 @@ def add_monitoring(ctx):
             'Failed adding monitoring, execution {id} did not succeed with '
             'status: {state}'
         ),
+        ctx=ctx,
     )
 
 
@@ -59,6 +60,7 @@ def remove_monitoring(ctx):
             'Failed adding monitoring, execution {id} did not succeed with '
             'status: {state}'
         ),
+        ctx=ctx,
     )
 
 
