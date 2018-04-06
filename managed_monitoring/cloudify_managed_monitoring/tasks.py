@@ -88,7 +88,7 @@ def _process_monitoring_request(add_or_remove,
     operation_inputs = jinja2.Template(
         monitoring_details.get(inputs_getter, '{}')
     )
-    operation_inputs.render(ctx=ctx)
+    operation_inputs = operation_inputs.render(ctx=ctx)
 
     ctx.logger.info(
         starting_message.format(
