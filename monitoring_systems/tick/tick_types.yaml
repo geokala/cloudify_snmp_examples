@@ -11,9 +11,9 @@ node_types:
           implementation: scripts/telegraf/start.py
         delete:
           implementation: scripts/telegraf/delete.py
-      telegraf.interfaces.snmp:
+      telegraf.configuration.snmp:
         add_target:
-          implementation: scripts/telegraf/plugins/snmp/add_target
+          implementation: scripts/telegraf/configuration/snmp/add_target
           inputs:
             name:
               description: >
@@ -43,8 +43,9 @@ node_types:
                 {".1.3.6.1.4.1.2021.10.1.3.1": "Load average 1 minute",
                  ".1.3.6.1.4.1.2021.10.1.3.3": "Load average 15 minute"}
               default: {}
-        remove_target:
-          implementation: scripts/telegraf/plugins/snmp/remove_target
+      telegraf.configuration:
+        remove_entry:
+          implementation: scripts/telegraf/configuration/remove_entry
           inputs:
             name:
               description: >
