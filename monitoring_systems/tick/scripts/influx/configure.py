@@ -148,6 +148,7 @@ commonName_default = 127.0.0.1"""
         ctx.instance.runtime_properties['ssl_cert'] = cert_handle.read()
     ctx.logger.info('Setting InfluxDB HTTPS configuration.')
     base_subst = "s|# https-{param} =.*|https-{param} = {value}|"
+    substitutions = []
     for key, value in conf_values.items():
         if key != 'enabled':
             # The influx configuration requires quoted values or it will fail
@@ -155,12 +156,17 @@ commonName_default = 127.0.0.1"""
             # value of the https-enabled key then it'll also fail without
             # logging the reason.
             value = '"' + value + '"'
-        subprocess.check_output([
-            "sudo", "sed", "-i",
+        substitutions.append(
             base_subst.format(
                 param=key,
                 value=value,
-            ),
+            )
+        )
+    substitutions.append('s|# auth-enabled = false|auth-enabled = true|')
+    for substitution in substitutions:
+        subprocess.check_output([
+            "sudo", "sed", "-i",
+            substitution,
             "/etc/influxdb/influxdb.conf"
         ])
     subprocess.check_output([
