@@ -1,0 +1,5 @@
+plugins:
+    managed_monitoring:
+        package_name: cloudify-managed-monitoring-plugin
+        package_version: '0.1.0'
+        install: true
