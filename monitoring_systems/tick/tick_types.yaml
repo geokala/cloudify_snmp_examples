@@ -17,7 +17,7 @@ node_types:
           inputs:
             name:
               description: >
-                Name of target to add.
+                Name of configuration and target to add.
                 This will be used to name the configuration file.
               default: null
             address:
@@ -44,12 +44,23 @@ node_types:
                  ".1.3.6.1.4.1.2021.10.1.3.3": "Load average 15 minute"}
               default: {}
       telegraf.configuration:
+        add_entry:
+          implementation: scripts/telegraf/configuration/add_entry
+          inputs:
+            name:
+              description: >
+                Name of configuration to add.
+              default: null
+            configuration:
+              description: >
+                Arbitrary configuration to add to telegraf.
+              default: null
         remove_entry:
           implementation: scripts/telegraf/configuration/remove_entry
           inputs:
             name:
               description: >
-                Name of target to remove.
+                Name of configuration to remove.
               default: null
     properties: 
       influx_user: {}

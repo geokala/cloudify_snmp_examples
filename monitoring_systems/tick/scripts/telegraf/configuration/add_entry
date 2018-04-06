@@ -1,25 +1,9 @@
 #! /usr/bin/env python
-import json
 import os
 import subprocess
 import tempfile
 
 TELEGRAF_CONF_PATH = '/etc/telegraf/telegraf.d'
-BASE_SNMPV3_CONF = """[[inputs.snmp]]
-  name = "{name}"
-  agents = [ "{address_and_port}" ]
-  version = 3
-  sec_name = "{username}"
-  sec_level = "authPriv"
-  auth_protocol = "SHA"
-  auth_password = "{auth_password}"
-  priv_protocol = "AES"
-  priv_password = "{priv_password}"
-"""
-SNMP_FIELD_CONF = """  [[inputs.snmp.field]]
-    name = "{field_name}"
-    oid = "{field_oid}"
-"""
 
 
 def log(message, level='info'):
@@ -36,8 +20,7 @@ def abort_on_unhealthy_service(fail_message, service='telegraf'):
         subprocess.check_call(['ctx', 'abort_operation', fail_message])
 
 
-def add_telegraf_snmp_configuration(name, address, fields,
-                                    username, priv_password, auth_password):
+def add_telegraf_configuration(name, configuration):
     abort_on_unhealthy_service(
         fail_message='Telegraf was not running before configuration change.',
     )
@@ -46,21 +29,6 @@ def add_telegraf_snmp_configuration(name, address, fields,
     conf_temp_file = os.path.join(conf_temp_dir, name + '.conf')
     conf_destination = os.path.join(TELEGRAF_CONF_PATH, name + '.conf')
     log('Generating telegraf configuration for {name}'.format(name=name))
-    if not address.rstrip('0123456789').endswith(':'):
-        # No port set, use default port
-        address += ':161'
-    configuration = BASE_SNMPV3_CONF.format(
-        name=name,
-        address_and_port=address,
-        username=username,
-        auth_password=auth_password,
-        priv_password=priv_password,
-    )
-    for field_oid, field_name in json.loads(fields).items():
-        configuration += SNMP_FIELD_CONF.format(
-            field_name=field_name,
-            field_oid=field_oid,
-        )
     with open(conf_temp_file, 'w') as conf_handle:
         conf_handle.write(configuration)
 
@@ -87,11 +55,7 @@ def add_telegraf_snmp_configuration(name, address, fields,
 
 
 if __name__ == '__main__':
-    add_telegraf_snmp_configuration(
+    add_telegraf_configuration(
         name=os.environ['name'],
-        address=os.environ['address'],
-        fields=os.environ['snmp_fields'],
-        username=os.environ['username'],
-        priv_password=os.environ['priv_password'],
-        auth_password=os.environ['auth_password'],
+        configuration=os.environ['configuration'],
     )
