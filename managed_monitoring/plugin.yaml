@@ -1,5 +1,6 @@
 plugins:
     managed_monitoring:
+        executor: central_deployment_agent
         package_name: cloudify-managed-monitoring-plugin
         package_version: '0.1.0'
         install: true
