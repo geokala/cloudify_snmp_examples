@@ -85,10 +85,15 @@ def _process_monitoring_request(add_or_remove,
     # This method means that inputs can be specified that refer to the node
     # instance that is currently being deployed (e.g. when scaling or
     # otherwise deploying more than one instance).
+    # The json dump and load is to provide substitution across all of the
+    # provided operation inputs without having to recursively descend into any
+    # dicts/lists, but this can be changed.
+    operation_inputs = json.dumps(operation_inputs)
     operation_inputs = jinja2.Template(
         monitoring_details.get(inputs_getter, '{}')
     )
     operation_inputs = operation_inputs.render(ctx=ctx)
+    operation_inputs = json.loads(operation_inputs)
 
     ctx.logger.info(
         starting_message.format(
@@ -115,7 +120,7 @@ def _process_monitoring_request(add_or_remove,
             'Waiting for execution {id}. '
             'Current state: {state}'.format(
                 id=execution.id,
-                state=execution.status_display,
+                state=execution.status,
             )
         )
         time.sleep(3)
@@ -129,6 +134,6 @@ def _process_monitoring_request(add_or_remove,
         raise NonRecoverableError(
             failure_message.format(
                 id=execution.id,
-                state=execution.status_display,
+                state=execution.status,
             )
         )
