@@ -53,12 +53,12 @@ def remove_monitoring(ctx):
     _process_monitoring_request(
         add_or_remove='remove',
         starting_message=(
-            'Adding monitoring to node {node} of deployment {dep}, using '
+            'Removing monitoring from node {node} of deployment {dep}, using '
             'operation {op}'
         ),
         success_message='Successfully added monitoring',
         failure_message=(
-            'Failed adding monitoring, execution {id} did not succeed with '
+            'Failed removing monitoring, execution {id} did not succeed with '
             'status: {state}'
         ),
         ctx=ctx,
