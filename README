@@ -1,4 +1,5 @@
 To test:
+0. Upload the wagons for the SNMP agent plugin and managed monitoring plugin (in their respective subdirectories)
 1. Deploy a centos7 VM with a key that is usable by the manager then upload the monitoring_systems/tick/blueprint.yaml, set inputs for the pre-deployed host, create a deployment, and install it. This should result in you having telegraf and influx installed on that centos7 VM. You can find the admin username and password in the runtime properties.
 2. Deploy a centos7, centos6, or ubuntu (tested on 16.04 with python) VM and set up the base SNMP on it as detailed below.
 3. Upload the test_blueprints/snmpagenttest-linux/blueprint.yaml, create inputs and deployments for each of the test systems you are using, and then install them.
