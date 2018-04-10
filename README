@@ -1,0 +1,18 @@
+To test:
+1. Deploy a centos7 VM with a key that is usable by the manager then upload the monitoring_systems/tick/blueprint.yaml, set inputs for the pre-deployed host, create a deployment, and install it. This should result in you having telegraf and influx installed on that centos7 VM. You can find the admin username and password in the runtime properties.
+2. Deploy a centos7, centos6, or ubuntu (tested on 16.04 with python) VM and set up the base SNMP on it as detailed below.
+3. Upload the test_blueprints/snmpagenttest-linux/blueprint.yaml, create inputs and deployments for each of the test systems you are using, and then install them.
+4. Retrieve the influx username and password from the influx runtime properties as noted in step 1, connect to your influx host, and access influx using: `influx -ssl -unsafeSsl -username <username, default cloudify_manager> -password <password>`
+5. `use cloudify` then `show measurements`. You should see the node names of the test VMs. You can list the collected stats with `select * from <node name>`
+
+SNMP configuration:
+Centos:
+  - `sudo yum install -y net-snmp-utils net-snmp`
+  - (centos 6 only): `sudo chkconfig snmpd on && sudo service snmpd start && sudo service iptables stop # FOR TESTING ONLY!`
+Ubuntu:
+  - `sudo apt-get update && sudo apt-get install -y snmp snmpd && sudo sed -i 's/127.0.0.1/0.0.0.0/' /etc/snmp/snmpd.conf && sudo service snmpd restart`
+
+Notes:
+  - Influx has been set up with SSL so that we can prove our components can work with SSL on influx. I don't recommend that we support non-SSL connections (because it'll mean providing full access to all metrics to any Man-in-the-middle).
+  - While you have to use 'unsafeSsl' to connect to influx locally, the agent communication will actually be secure, and the telegraf configuration is also explicitly trusting the certificates. Influx does not provide helpful ways to handle self signed certificates, despite suggesting using them in some circumstances.
+  - The managed monitoring agent calls an operation on a node on an existing deployment. This means that the monitoring system has to have a blueprint which can be used to manage it, but also means that this plugin wouldn't be likely to require modification for any monitoring systems, it would instead be recommended that any monitoring systems be integrated by using a deployment with operations set up to manage it. See the test agent blueprint and managed monitoring plugins for details.
