@@ -1,0 +1,48 @@
+tosca_definitions_version: cloudify_dsl_1_3
+
+imports:
+  - http://www.getcloudify.org/spec/cloudify/4.1.1.1/types.yaml
+  - https://raw.githubusercontent.com/geokala/cloudify_snmp_examples/master/snmp_agent/plugin.yaml
+  - https://raw.githubusercontent.com/geokala/cloudify_snmp_examples/master/managed_monitoring/plugin.yaml
+
+inputs:
+  server_ip: {}
+  server_user: {}
+  server_key_path: {}
+
+node_types:
+  monitoredvm:
+    derived_from: cloudify.nodes.Compute
+    properties:
+      managed_monitoring: {}
+
+node_templates:
+  vm:
+    type: monitoredvm
+    properties:
+      ip: { get_input: server_ip }
+      agent_config:
+          user: { get_input: server_user }
+          key: { get_input: server_key_path }
+      managed_monitoring:
+          deployment_name: tick
+          node_name: telegraf
+          add_operation_name: telegraf.configuration.snmp.add_target
+          add_operation_inputs: 
+            name: "{{ctx.instance.id}}"
+            address: "{{ctx.instance.runtime_properties.cloudify_agent.ip}}"
+            username: "{{ctx.instance.runtime_properties.cloudify_snmp.username}}"
+            priv_password: "{{ctx.instance.runtime_properties.cloudify_snmp.priv_pass}}"
+            auth_password: "{{ctx.instance.runtime_properties.cloudify_snmp.auth_pass}}"
+            snmp_fields:
+                ".1.3.6.1.4.1.2021.10.1.3.1": "Load average 1 minute"
+                ".1.3.6.1.4.1.2021.10.1.3.3": "Load average 15 minute"
+          remove_operation_name: telegraf.configuration.remove_entry
+          remove_operation_inputs: '{"name": "{{ctx.instance.id}}"}'
+    interfaces:
+      cloudify.interfaces.monitoring_agent:
+        start: agent_snmp.cloudify_agent_snmp.tasks.add_cloudify_agent_to_snmpd
+        stop: agent_snmp.cloudify_agent_snmp.tasks.remove_cloudify_agent_from_snmpd
+      cloudify.interfaces.monitoring:
+        start: managed_monitoring.cloudify_managed_monitoring.tasks.add_monitoring
+        stop: managed_monitoring.cloudify_managed_monitoring.tasks.remove_monitoring
