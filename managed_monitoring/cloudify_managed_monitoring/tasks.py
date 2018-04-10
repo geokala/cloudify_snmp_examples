@@ -1,3 +1,4 @@
+import json
 import time
 
 import jinja2
@@ -88,11 +89,9 @@ def _process_monitoring_request(add_or_remove,
     # The json dump and load is to provide substitution across all of the
     # provided operation inputs without having to recursively descend into any
     # dicts/lists, but this can be changed.
+    operation_inputs = monitoring_details.get(inputs_getter, '{}')
     operation_inputs = json.dumps(operation_inputs)
-    operation_inputs = jinja2.Template(
-        monitoring_details.get(inputs_getter, '{}')
-    )
-    operation_inputs = operation_inputs.render(ctx=ctx)
+    operation_inputs = jinja2.Template(operation_inputs).render(ctx=ctx)
     operation_inputs = json.loads(operation_inputs)
 
     ctx.logger.info(
