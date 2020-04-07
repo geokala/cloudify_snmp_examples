@@ -1,3 +1,7 @@
+This project has been disabled as it is no longer maintained and has insecure dependencies.
+It has been left online in case of any future interest.
+To re-enable it, dependencies in requirements.txt and setup.py should be uncommented.
+
 To test:
 0. Upload the wagons for the SNMP agent plugin and managed monitoring plugin (in their respective subdirectories)
 1. Deploy a centos7 VM with a key that is usable by the manager then upload the monitoring_systems/tick/blueprint.yaml, set inputs for the pre-deployed host, create a deployment, and install it. This should result in you having telegraf and influx installed on that centos7 VM. You can find the admin username and password in the runtime properties.
